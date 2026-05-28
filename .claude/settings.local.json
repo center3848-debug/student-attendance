@@ -32,7 +32,9 @@
       "Bash(python3 -c \"import sys,json,re; html=sys.stdin.read\\(\\); m=re.search\\(r'\\\\\"err\\\\\":\\\\{.*?\\\\}', html\\); print\\(m.group\\(\\) if m else html[:500]\\)\")",
       "PowerShell($response = Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -ErrorAction SilentlyContinue; $response.Content | Select-String '\"message\"' | Select-Object -First 3)",
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing } catch { $_.Exception.Response.StatusCode; $content = $_.Exception.Response.GetResponseStream\\(\\); $reader = New-Object System.IO.StreamReader\\($content\\); $text = $reader.ReadToEnd\\(\\); \\($text | Select-String '\"message\":\"\\([^\"]+\\)\"'\\).Matches[0].Groups[1].Value })",
-      "PowerShell(Get-NetTCPConnection *)"
+      "PowerShell(Get-NetTCPConnection *)",
+      "PowerShell(python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"premium SaaS dashboard education glassmorphism gradient stunning\" --design-system -p \"ศูนย์การศึกษาพิเศษ ปทุมธานี\" -f markdown 2>&1)",
+      "PowerShell(python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"glassmorphism gradient animation\" --domain style -n 3 2>&1; python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"dashboard realtime area chart\" --domain chart -n 3 2>&1)"
     ]
   }
 }

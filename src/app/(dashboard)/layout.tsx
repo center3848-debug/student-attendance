@@ -4,7 +4,7 @@ import { MobileNav } from '@/components/layout/MobileNav'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-gray-950">
+    <div className="flex h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30 dark:from-gray-950 dark:via-gray-900/80 dark:to-gray-950">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header title="ระบบลงเวลานักเรียน" />
