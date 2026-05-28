@@ -13,8 +13,8 @@ export async function getAttendanceByDate(date: string): Promise<AttendanceLog[]
     .gte('timestamp', `${date}T00:00:00Z`)
     .lte('timestamp', `${date}T23:59:59Z`)
     .order('timestamp', { ascending: false })
-  if (error) throw error
-  return data as AttendanceLog[]
+  if (error) { console.error('getAttendanceByDate:', error.message); return [] }
+  return (data ?? []) as AttendanceLog[]
 }
 
 export async function createAttendanceLog(payload: {

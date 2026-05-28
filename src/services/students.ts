@@ -8,8 +8,8 @@ export async function getStudents(): Promise<Student[]> {
   if (USE_MOCK) return MOCK_STUDENTS
   const supabase = createBrowserClient()
   const { data, error } = await supabase.from('students').select('*').order('classroom').order('fullname')
-  if (error) throw error
-  return data as Student[]
+  if (error) { console.error('getStudents:', error.message); return [] }
+  return (data ?? []) as Student[]
 }
 
 export async function getStudentById(id: string): Promise<Student | null> {
