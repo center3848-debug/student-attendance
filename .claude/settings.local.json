@@ -21,7 +21,11 @@
       "Bash(npx tsc *)",
       "Bash(npm run *)",
       "Bash(git config *)",
-      "PowerShell(Set-Location \"C:\\\\Users\\\\preec\\\\OneDrive\\\\Desktop\\\\ระบบลงเวลานักเรียน\"; Get-ChildItem src -Recurse -File | Select-Object FullName | Where-Object { $_.FullName -notmatch \"node_modules\" })"
+      "PowerShell(Set-Location \"C:\\\\Users\\\\preec\\\\OneDrive\\\\Desktop\\\\ระบบลงเวลานักเรียน\"; Get-ChildItem src -Recurse -File | Select-Object FullName | Where-Object { $_.FullName -notmatch \"node_modules\" })",
+      "PowerShell(python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"special education school thai warm caring accessible dashboard attendance\" --design-system -p \"ศูนย์การศึกษาพิเศษ ปทุมธานี\" -f markdown 2>&1)",
+      "PowerShell(python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"accessible education dashboard caring warm\" --domain ux -n 5 2>&1)",
+      "PowerShell(python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"nextjs shadcn dashboard\" --stack shadcn 2>&1)",
+      "Bash(npx next *)"
     ]
   }
 }
