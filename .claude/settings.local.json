@@ -25,7 +25,14 @@
       "PowerShell(python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"special education school thai warm caring accessible dashboard attendance\" --design-system -p \"ศูนย์การศึกษาพิเศษ ปทุมธานี\" -f markdown 2>&1)",
       "PowerShell(python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"accessible education dashboard caring warm\" --domain ux -n 5 2>&1)",
       "PowerShell(python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"nextjs shadcn dashboard\" --stack shadcn 2>&1)",
-      "Bash(npx next *)"
+      "Bash(npx next *)",
+      "Bash(claude mcp *)",
+      "Bash(curl *)",
+      "WebFetch(domain:localhost)",
+      "Bash(python3 -c \"import sys,json,re; html=sys.stdin.read\\(\\); m=re.search\\(r'\\\\\"err\\\\\":\\\\{.*?\\\\}', html\\); print\\(m.group\\(\\) if m else html[:500]\\)\")",
+      "PowerShell($response = Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -ErrorAction SilentlyContinue; $response.Content | Select-String '\"message\"' | Select-Object -First 3)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing } catch { $_.Exception.Response.StatusCode; $content = $_.Exception.Response.GetResponseStream\\(\\); $reader = New-Object System.IO.StreamReader\\($content\\); $text = $reader.ReadToEnd\\(\\); \\($text | Select-String '\"message\":\"\\([^\"]+\\)\"'\\).Matches[0].Groups[1].Value })",
+      "PowerShell(Get-NetTCPConnection *)"
     ]
   }
 }
