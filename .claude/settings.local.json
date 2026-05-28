@@ -16,7 +16,12 @@
       "Bash(npx shadcn@latest add button card badge dialog table input label avatar dropdown-menu sheet skeleton tabs select --yes)",
       "Bash(npx shadcn@latest add sonner --yes)",
       "Bash(git init *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(git config *)",
+      "PowerShell(Set-Location \"C:\\\\Users\\\\preec\\\\OneDrive\\\\Desktop\\\\ระบบลงเวลานักเรียน\"; Get-ChildItem src -Recurse -File | Select-Object FullName | Where-Object { $_.FullName -notmatch \"node_modules\" })"
     ]
   }
 }

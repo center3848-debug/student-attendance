@@ -184,13 +184,24 @@ src/types/
 
 ---
 
+## Context
+
+**ระบบนี้ใช้ที่:** ศูนย์การศึกษาพิเศษ ประจำจังหวัดปทุมธานี
+
+นักเรียนมีความต้องการพิเศษ (Special Needs) ครูและผู้ปกครองต้องการระบบที่อ่อนโยน เข้าถึงง่าย และให้ความรู้สึกอบอุ่น
+
 ## Design Style
 
-- Modern SaaS, Minimal, Professional
-- Dark mode + Light mode
-- ปุ่มขนาดใหญ่สำหรับ Tablet
+- **Warm & Caring** (ไม่ใช่ Corporate SaaS) — สีโทนอ่อน อบอุ่น นุ่มนวล
+- **Color Palette:** ฟ้าอ่อน (#E8F4FD), เขียวอ่อน (#E8F8F0), ส้มอ่อน (#FEF3E8), ม่วงอ่อน (#F3EEFE)
+- **Typography:** ตัวใหญ่ชัดเจน (body text ≥ 16px), heading ≥ 24px, ฟอนต์ Sarabun
+- **Buttons:** ขนาดใหญ่มาก (min h-14), มี icon + text label ทุกปุ่ม, rounded corners นุ่มนวล
+- **Accessibility:** color contrast ≥ 4.5:1, ไม่ใช้สีแดงเข้มสำหรับ error (ใช้ orange-red แทน)
+- **Branding:** แสดงชื่อ "ศูนย์การศึกษาพิเศษ ประจำจังหวัดปทุมธานี" ใน Sidebar/Header
+- **Tone:** ภาษาไทยอ่อนโยน ไม่เป็นทางการ (เช่น "เด็กๆ มาโรงเรียน" แทน "นักเรียนลงทะเบียน")
+- **Layout:** simple, calm, ไม่ cluttered — เน้นข้อมูลสำคัญ ลด visual noise
+- Dark mode รองรับ (optional)
 - Responsive รองรับมือถือและ Tablet
-- ภาษาไทยทุกหน้า
 
 ---
 
