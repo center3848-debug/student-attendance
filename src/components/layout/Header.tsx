@@ -37,13 +37,11 @@ export function Header({ title }: HeaderProps) {
         {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
       </Button>
       <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Avatar className="cursor-pointer w-9 h-9">
-              <AvatarFallback className="bg-blue-100 text-blue-700 text-sm font-semibold">ครู</AvatarFallback>
-            </Avatar>
-          }
-        />
+        <DropdownMenuTrigger render={<button className="rounded-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label="เมนูผู้ใช้" />}>
+          <Avatar className="w-9 h-9 pointer-events-none">
+            <AvatarFallback className="bg-blue-100 text-blue-700 text-sm font-semibold">ครู</AvatarFallback>
+          </Avatar>
+        </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
           <DropdownMenuItem className="gap-2 cursor-pointer">
             <User className="w-4 h-4" /> โปรไฟล์
