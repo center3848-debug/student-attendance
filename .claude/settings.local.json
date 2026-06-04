@@ -34,7 +34,28 @@
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing } catch { $_.Exception.Response.StatusCode; $content = $_.Exception.Response.GetResponseStream\\(\\); $reader = New-Object System.IO.StreamReader\\($content\\); $text = $reader.ReadToEnd\\(\\); \\($text | Select-String '\"message\":\"\\([^\"]+\\)\"'\\).Matches[0].Groups[1].Value })",
       "PowerShell(Get-NetTCPConnection *)",
       "PowerShell(python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"premium SaaS dashboard education glassmorphism gradient stunning\" --design-system -p \"ศูนย์การศึกษาพิเศษ ปทุมธานี\" -f markdown 2>&1)",
-      "PowerShell(python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"glassmorphism gradient animation\" --domain style -n 3 2>&1; python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"dashboard realtime area chart\" --domain chart -n 3 2>&1)"
+      "PowerShell(python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"glassmorphism gradient animation\" --domain style -n 3 2>&1; python \"C:\\\\Users\\\\preec\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"dashboard realtime area chart\" --domain chart -n 3 2>&1)",
+      "mcp__plugin_vercel_vercel__deploy_to_vercel",
+      "mcp__plugin_vercel_vercel__list_teams",
+      "mcp__plugin_vercel_vercel__list_projects",
+      "mcp__supabase__execute_sql",
+      "Bash(echo \"exit: $?\")",
+      "Bash(grep -iE \"vercel|\\\\.git$\")",
+      "Bash(npx --yes vercel whoami)",
+      "Bash(npx --yes vercel deploy --prod --yes)",
+      "Bash(npx --yes vercel teams ls)",
+      "Bash(npx --yes vercel projects ls)",
+      "Bash(rm -f .vercel/project.json)",
+      "Bash(npx --yes vercel link --yes --project speced-pathum-attendance --scope preecha1944s-projects)",
+      "Bash(npx --yes vercel deploy --prod --yes --scope preecha1944s-projects)",
+      "mcp__supabase__get_logs",
+      "Bash(echo \"tsc exit: $?\")",
+      "Bash(node -e ' *)",
+      "mcp__supabase__apply_migration",
+      "Bash(taskkill //F //IM node.exe)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }
