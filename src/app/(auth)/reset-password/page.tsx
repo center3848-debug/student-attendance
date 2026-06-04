@@ -56,7 +56,7 @@ export default function ResetPasswordPage() {
                     placeholder="อย่างน้อย 6 ตัวอักษร"
                     autoComplete="new-password"
                     required
-                    className="h-14 rounded-2xl text-base px-4 pr-12"
+                    className="h-14 rounded-2xl text-base text-gray-900 bg-white px-4 pr-12"
                   />
                   <button
                     type="button"
@@ -78,7 +78,7 @@ export default function ResetPasswordPage() {
                   placeholder="พิมพ์รหัสผ่านอีกครั้ง"
                   autoComplete="new-password"
                   required
-                  className="h-14 rounded-2xl text-base px-4"
+                  className="h-14 rounded-2xl text-base text-gray-900 bg-white px-4"
                 />
               </div>
               <Button

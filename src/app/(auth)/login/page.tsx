@@ -215,7 +215,7 @@ export default function LoginPage() {
                     autoCorrect="off"
                     spellCheck={false}
                     required
-                    className="h-14 rounded-2xl text-base border-gray-200 focus:border-rose-400 focus:ring-rose-300 px-4"
+                    className="h-14 rounded-2xl text-base text-gray-900 bg-white border-gray-200 focus:border-rose-400 focus:ring-rose-300 px-4"
                   />
                 </div>
                 <div className="space-y-2">
@@ -229,7 +229,7 @@ export default function LoginPage() {
                       placeholder="กรอกรหัสผ่าน"
                       autoComplete="current-password"
                       required
-                      className="h-14 rounded-2xl text-base border-gray-200 focus:border-rose-400 focus:ring-rose-300 px-4 pr-12"
+                      className="h-14 rounded-2xl text-base text-gray-900 bg-white border-gray-200 focus:border-rose-400 focus:ring-rose-300 px-4 pr-12"
                     />
                     <button
                       type="button"
