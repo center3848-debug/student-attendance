@@ -33,8 +33,13 @@ export function StudentCard({ student, onEdit, onDelete, onShowCard, attendanceT
       <CardContent className="p-5">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold ${avatarClass}`}>
-              {initials}
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold overflow-hidden ${avatarClass}`}>
+              {student.profile_image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={student.profile_image_url} alt={student.fullname} className="w-full h-full object-cover" />
+              ) : (
+                initials
+              )}
             </div>
             <div>
               <p className="font-semibold text-gray-800 dark:text-gray-100 text-base">{student.fullname}</p>

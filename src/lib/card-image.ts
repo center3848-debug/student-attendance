@@ -26,6 +26,15 @@ function fitFont(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, 
   return size
 }
 
+/** โหลดรูปแบบ CORS-safe — ถ้าโหลด/ถอดรหัสไม่ได้ (เช่นไม่มี CORS) คืน null เพื่อกัน canvas taint */
+async function loadImageSafe(src: string | null | undefined, crossOrigin = false): Promise<HTMLImageElement | null> {
+  if (!src) return null
+  const img = new Image()
+  if (crossOrigin) img.crossOrigin = 'anonymous'
+  img.src = src
+  try { await img.decode(); return img } catch { return null }
+}
+
 /** วาดบัตรนักเรียนลง canvas แล้วคืนเป็น PNG Blob */
 export async function renderCardImage(student: Student, qrDataUrl: string): Promise<Blob> {
   // รอฟอนต์ไทยพร้อมก่อนวาด ไม่งั้น canvas อาจ fallback เป็นฟอนต์อื่น
@@ -33,9 +42,11 @@ export async function renderCardImage(student: Student, qrDataUrl: string): Prom
     try { await document.fonts.ready } catch { /* ข้ามได้ */ }
   }
 
-  const qr = new Image()
-  qr.src = qrDataUrl
-  await qr.decode().catch(() => { /* ปล่อยให้วาดเท่าที่ได้ */ })
+  // QR เป็น data URL (same-origin) / รูปใบหน้าจาก Cloudinary ต้อง crossOrigin กัน taint
+  const [qr, photo] = await Promise.all([
+    loadImageSafe(qrDataUrl, false),
+    loadImageSafe(student.profile_image_url, true),
+  ])
 
   const canvas = document.createElement('canvas')
   const dpr = 2
@@ -73,31 +84,58 @@ export async function renderCardImage(student: Student, qrDataUrl: string): Prom
   ctx.fillText(CENTER_NAME, 36, 88)
 
   // ===== ตัวบัตร =====
-  const qrSize = 170
+  const qrSize = 160
   const qrX = W - 36 - qrSize
   const qrY = 150
-  const leftMax = qrX - 36 - 24
 
-  // ชื่อ
+  // รูปใบหน้า (กรอบสี่เหลี่ยมมุมโค้ง)
+  const PH = 130, px = 36, py = 150
+  ctx.save()
+  roundRectPath(ctx, px, py, PH, PH, 22)
+  ctx.clip()
+  if (photo && photo.naturalWidth) {
+    const s = Math.max(PH / photo.naturalWidth, PH / photo.naturalHeight)
+    const dw = photo.naturalWidth * s, dh = photo.naturalHeight * s
+    ctx.drawImage(photo, px + (PH - dw) / 2, py + (PH - dh) / 2, dw, dh)
+  } else {
+    ctx.fillStyle = '#fef3c7'
+    ctx.fillRect(px, py, PH, PH)
+    ctx.fillStyle = '#92400e'
+    ctx.font = `bold 64px ${FONT}`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(student.fullname.charAt(0) || '?', px + PH / 2, py + PH / 2 + 4)
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'alphabetic'
+  }
+  ctx.restore()
+  ctx.lineWidth = 3
+  ctx.strokeStyle = '#fde68a'
+  roundRectPath(ctx, px, py, PH, PH, 22)
+  ctx.stroke()
+
+  // ===== ข้อมูล (ขวาของรูป) =====
+  const infoX = px + PH + 22
+  const infoMax = qrX - infoX - 16
+
   ctx.fillStyle = '#1f2937'
-  const nameSize = fitFont(ctx, student.fullname, leftMax, 'bold', 34, 20)
-  ctx.fillText(student.fullname, 36, 150 + nameSize)
+  const nameSize = fitFont(ctx, student.fullname, infoMax, 'bold', 30, 18)
+  ctx.fillText(student.fullname, infoX, 150 + nameSize)
 
-  // รหัส
   ctx.fillStyle = '#6b7280'
-  ctx.font = `22px ${FONT}`
-  ctx.fillText(`รหัส: ${student.student_code}`, 36, 150 + nameSize + 40)
+  ctx.font = `20px ${FONT}`
+  ctx.fillText(`รหัส: ${student.student_code}`, infoX, 150 + nameSize + 34)
 
   // ป้ายห้องเรียน
-  ctx.font = `20px ${FONT}`
+  ctx.font = `18px ${FONT}`
   const roomText = student.classroom
   const roomW = ctx.measureText(roomText).width
-  const pillX = 36, pillY = 150 + nameSize + 64, pillH = 40, padX = 18
+  const pillX = infoX, pillY = 150 + nameSize + 54, pillH = 36, padX = 16
   ctx.fillStyle = '#fef3c7'
   roundRectPath(ctx, pillX, pillY, roomW + padX * 2, pillH, pillH / 2)
   ctx.fill()
   ctx.fillStyle = '#92400e'
-  ctx.fillText(roomText, pillX + padX, pillY + 27)
+  ctx.fillText(roomText, pillX + padX, pillY + 24)
 
   // กรอบ QR + รูป
   ctx.fillStyle = '#ffffff'
@@ -107,7 +145,7 @@ export async function renderCardImage(student: Student, qrDataUrl: string): Prom
   ctx.strokeStyle = '#fde68a'
   roundRectPath(ctx, qrX - 8, qrY - 8, qrSize + 16, qrSize + 16, 16)
   ctx.stroke()
-  if (qr.complete && qr.naturalWidth) ctx.drawImage(qr, qrX, qrY, qrSize, qrSize)
+  if (qr && qr.naturalWidth) ctx.drawImage(qr, qrX, qrY, qrSize, qrSize)
 
   // คำกำกับใต้ QR
   ctx.fillStyle = '#9ca3af'

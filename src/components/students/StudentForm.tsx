@@ -1,11 +1,12 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Camera, X } from 'lucide-react'
+import { toast } from 'sonner'
 import type { Student } from '@/types'
 import { useClassrooms } from '@/hooks/useClassrooms'
 
@@ -31,29 +32,51 @@ const emptyForm: StudentFormData = {
 export function StudentForm({ open, onClose, onSubmit, initialData, loading }: StudentFormProps) {
   const [form, setForm] = useState<StudentFormData>(emptyForm)
   const [errors, setErrors] = useState<Partial<Record<keyof StudentFormData, string>>>({})
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
   const { names: classroomNames } = useClassrooms()
 
   useEffect(() => {
-    if (open) {
-      if (initialData) {
-        setForm({
+    // เลื่อน setState ออกจาก effect body (เลี่ยง cascading render / ผ่านกฎ react-hooks)
+    const id = requestAnimationFrame(() => {
+      if (open) {
+        setForm(initialData ? {
           student_code: initialData.student_code,
           fullname: initialData.fullname,
           classroom: initialData.classroom,
           parent_name: initialData.parent_name,
           parent_phone: initialData.parent_phone,
           profile_image_url: initialData.profile_image_url,
-        })
-      } else {
-        setForm(emptyForm)
+        } : emptyForm)
       }
-    }
-    setErrors({})
+      setErrors({})
+    })
+    return () => cancelAnimationFrame(id)
   }, [open, initialData])
 
   function set(key: keyof StudentFormData, value: string | null) {
     setForm(f => ({ ...f, [key]: value }))
     if (errors[key]) setErrors(e => ({ ...e, [key]: '' }))
+  }
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // ให้เลือกไฟล์เดิมซ้ำได้
+    if (!file) return
+    if (!file.type.startsWith('image/')) { toast.error('กรุณาเลือกไฟล์รูปภาพ'); return }
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/upload-drive', { method: 'POST', body: fd })
+      if (!res.ok) throw new Error()
+      const { url } = await res.json()
+      set('profile_image_url', url)
+    } catch {
+      toast.error('อัปโหลดรูปไม่สำเร็จ กรุณาลองใหม่')
+    } finally {
+      setUploading(false)
+    }
   }
 
   function validate() {
@@ -88,6 +111,34 @@ export function StudentForm({ open, onClose, onSubmit, initialData, loading }: S
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* รูปใบหน้านักเรียน */}
+          <div className="flex flex-col items-center gap-2">
+            <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-amber-200 bg-amber-50 flex items-center justify-center">
+              {form.profile_image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={form.profile_image_url} alt="รูปนักเรียน" className="w-full h-full object-cover" />
+              ) : (
+                <Camera className="w-8 h-8 text-amber-400" aria-hidden="true" />
+              )}
+              {uploading && (
+                <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+                </div>
+              )}
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={handleFile} />
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading} className="rounded-xl h-9 gap-2 text-sm">
+                <Camera className="w-4 h-4" /> {form.profile_image_url ? 'เปลี่ยนรูป' : 'เพิ่มรูปใบหน้า'}
+              </Button>
+              {form.profile_image_url && (
+                <Button type="button" variant="ghost" onClick={() => set('profile_image_url', null)} disabled={uploading} className="rounded-xl h-9 gap-1 text-sm text-rose-500">
+                  <X className="w-4 h-4" /> ลบรูป
+                </Button>
+              )}
+            </div>
+          </div>
+
           {textFields.map(([key, label, type]) => (
             <div key={key} className="space-y-1">
               <Label htmlFor={key} className="text-sm font-medium">{label}</Label>

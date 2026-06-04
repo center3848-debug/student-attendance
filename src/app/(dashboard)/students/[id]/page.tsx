@@ -51,8 +51,13 @@ export default function StudentDetailPage() {
         <Card className="border-0 shadow-sm bg-white dark:bg-gray-900">
           <CardContent className="p-6">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-2xl font-bold">
-                {student.fullname.charAt(0)}
+              <div className="w-16 h-16 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-2xl font-bold overflow-hidden">
+                {student.profile_image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={student.profile_image_url} alt={student.fullname} className="w-full h-full object-cover" />
+                ) : (
+                  student.fullname.charAt(0)
+                )}
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{student.fullname}</h2>
