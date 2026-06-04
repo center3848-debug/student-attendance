@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { UserPlus } from 'lucide-react'
+import { UserPlus, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -8,22 +8,26 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { StudentCard } from '@/components/students/StudentCard'
 import { StudentForm } from '@/components/students/StudentForm'
+import { IdCardDialog } from '@/components/students/IdCardDialog'
 import { useStudents } from '@/hooks/useStudents'
 import { useAttendance } from '@/hooks/useAttendance'
 import { createStudent, updateStudent, deleteStudent } from '@/services/students'
 import { toast } from 'sonner'
-import { MOCK_CLASSROOMS } from '@/lib/mock-data'
+import { useClassrooms } from '@/hooks/useClassrooms'
 import type { Student, AttendanceStatus } from '@/types'
 
 export default function StudentsPage() {
   const { students, allStudents, loading, search, setSearch } = useStudents()
   const { logs } = useAttendance()
+  const { names: classroomNames } = useClassrooms()
   const [roomFilter, setRoomFilter] = useState<string>('ทั้งหมด')
   function handleRoomChange(value: string | null) { setRoomFilter(value ?? 'ทั้งหมด') }
   const [formOpen, setFormOpen] = useState(false)
   const [editStudent, setEditStudent] = useState<Student | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [cardStudents, setCardStudents] = useState<Student[]>([])
+  const [cardOpen, setCardOpen] = useState(false)
 
   const filtered = roomFilter === 'ทั้งหมด'
     ? students
@@ -33,6 +37,15 @@ export default function StudentsPage() {
     return logs.find(l => l.student_id === id)?.status ?? null
   }
 
+  function showCards(students: Student[]) {
+    if (students.length === 0) {
+      toast.info('ไม่มีนักเรียนให้พิมพ์บัตร')
+      return
+    }
+    setCardStudents(students)
+    setCardOpen(true)
+  }
+
   async function handleSubmit(data: Omit<Student, 'id' | 'created_at'>) {
     setSaving(true)
     try {
@@ -40,8 +53,10 @@ export default function StudentsPage() {
         await updateStudent(editStudent.id, data)
         toast.success('แก้ไขข้อมูลเรียบร้อย')
       } else {
-        await createStudent(data)
+        const created = await createStudent(data)
         toast.success('เพิ่มนักเรียนเรียบร้อย')
+        setCardStudents([created])
+        setCardOpen(true)
       }
       setFormOpen(false)
       setEditStudent(null)
@@ -71,13 +86,23 @@ export default function StudentsPage() {
           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">ข้อมูลนักเรียน</h2>
           <p className="text-gray-500 mt-1">ทั้งหมด {allStudents.length} คน</p>
         </div>
-        <Button
-          onClick={() => { setEditStudent(null); setFormOpen(true) }}
-          className="h-12 rounded-2xl gap-2 bg-blue-600 hover:bg-blue-700 text-base"
-        >
-          <UserPlus className="w-5 h-5" aria-hidden="true" />
-          เพิ่มนักเรียน
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => showCards(filtered)}
+            variant="outline"
+            className="h-12 rounded-2xl gap-2 text-base"
+          >
+            <Printer className="w-5 h-5" aria-hidden="true" />
+            <span className="hidden sm:inline">พิมพ์บัตร{roomFilter === 'ทั้งหมด' ? 'ทั้งหมด' : roomFilter}</span>
+          </Button>
+          <Button
+            onClick={() => { setEditStudent(null); setFormOpen(true) }}
+            className="h-12 rounded-2xl gap-2 bg-blue-600 hover:bg-blue-700 text-base"
+          >
+            <UserPlus className="w-5 h-5" aria-hidden="true" />
+            <span className="hidden sm:inline">เพิ่มนักเรียน</span>
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -93,7 +118,7 @@ export default function StudentsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ทั้งหมด">ทุกห้อง</SelectItem>
-            {MOCK_CLASSROOMS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+            {classroomNames.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
@@ -110,6 +135,7 @@ export default function StudentsPage() {
               student={s}
               onEdit={() => { setEditStudent(s); setFormOpen(true) }}
               onDelete={() => setDeleteId(s.id)}
+              onShowCard={() => showCards([s])}
               attendanceToday={getAttendance(s.id)}
             />
           ))}
@@ -122,6 +148,13 @@ export default function StudentsPage() {
         onSubmit={handleSubmit}
         initialData={editStudent}
         loading={saving}
+      />
+
+      <IdCardDialog
+        open={cardOpen}
+        onClose={() => setCardOpen(false)}
+        students={cardStudents}
+        title={cardStudents.length === 1 ? 'บัตรนักเรียน' : `พิมพ์บัตร ${cardStudents.length} คน`}
       />
 
       <AlertDialog open={!!deleteId} onOpenChange={v => { if (!v) setDeleteId(null) }}>

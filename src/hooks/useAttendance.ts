@@ -27,7 +27,6 @@ export function useAttendance(date?: string) {
 
   useEffect(() => {
     load()
-    if (process.env.NEXT_PUBLIC_USE_MOCK === 'true') return
     const supabase = createBrowserClient()
     const channel = supabase
       .channel(channelRef.current)

@@ -1,16 +1,9 @@
 'use client'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
-
-const thaiDays = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสฯ', 'ศุกร์', 'เสาร์', 'อาทิตย์']
-
-function genData() {
-  return thaiDays.map((day) => ({
-    day,
-    มาเรียน: Math.floor(Math.random() * 4) + 14,
-    ขาดเรียน: Math.floor(Math.random() * 3) + 1,
-    มาสาย: Math.floor(Math.random() * 3) + 1,
-  }))
-}
+import { useAttendanceReport } from '@/hooks/useAttendanceReport'
+import { dailyBars, rangeDays, isEmptyBars } from '@/lib/reports'
+import { Skeleton } from '@/components/ui/skeleton'
+import { BarChart3 } from 'lucide-react'
 
 interface TooltipPayload { name: string; value: number; color: string }
 interface CustomTooltipProps { active?: boolean; payload?: TooltipPayload[]; label?: string }
@@ -34,7 +27,24 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 }
 
 export function AttendanceChart() {
-  const data = genData()
+  const { logs, students, loading } = useAttendanceReport('week')
+  const data = dailyBars(logs, rangeDays('week'), students)
+
+  if (loading) {
+    return <Skeleton className="w-full h-64 rounded-2xl" />
+  }
+
+  if (isEmptyBars(data)) {
+    return (
+      <div className="w-full h-64 flex flex-col items-center justify-center text-gray-400">
+        <div className="w-14 h-14 rounded-3xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
+          <BarChart3 className="w-7 h-7 text-gray-300 dark:text-gray-600" aria-hidden="true" />
+        </div>
+        <p className="text-sm font-medium">ยังไม่มีข้อมูลการมาเรียนในช่วง 7 วันนี้</p>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full h-64">
       <ResponsiveContainer width="100%" height="100%">
@@ -55,7 +65,7 @@ export function AttendanceChart() {
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeWidth={1} vertical={false} />
           <XAxis dataKey="day" tick={{ fontSize: 12, fontFamily: 'var(--font-sarabun)', fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+          <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(99,102,241,0.06)', radius: 8 }} />
           <Legend wrapperStyle={{ fontFamily: 'var(--font-sarabun)', fontSize: '13px', paddingTop: '12px' }} iconType="circle" iconSize={8} />
           <Bar dataKey="มาเรียน" fill="url(#gradPresent)" radius={[6, 6, 0, 0]} isAnimationActive={true} animationDuration={800} />

@@ -1,72 +1,98 @@
 'use client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useAttendance } from '@/hooks/useAttendance'
 import { useStudents } from '@/hooks/useStudents'
 import { createAttendanceLog } from '@/services/attendance'
+import { resolveStatus } from '@/lib/attendance-status'
 import { AttendanceTable } from '@/components/attendance/AttendanceTable'
-import { CameraModal } from '@/components/attendance/CameraModal'
+import { QRScannerModal, type ScanResult } from '@/components/attendance/QRScannerModal'
 import { formatThaiDate } from '@/lib/utils'
 import { toast } from 'sonner'
-import { Users, TrendingUp } from 'lucide-react'
-import type { CheckType } from '@/types'
+import { Users, TrendingUp, ScanLine } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import type { CheckType, Student } from '@/types'
+
+const CHECK_MODES: { type: CheckType; label: string }[] = [
+  { type: 'check_in', label: 'เข้าเรียน' },
+  { type: 'pickup', label: 'รับกลับบ้าน' },
+]
+const modeLabel = (t: CheckType) => CHECK_MODES.find(m => m.type === t)?.label ?? ''
 
 export default function AttendancePage() {
   const { logs, stats, refresh } = useAttendance()
   const { allStudents } = useStudents()
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null)
-  const [selectedCheckType, setSelectedCheckType] = useState<CheckType>('check_in')
-  const [cameraOpen, setCameraOpen] = useState(false)
+  const [mode, setMode] = useState<CheckType>('check_in')
+  const [scannerOpen, setScannerOpen] = useState(false)
   const [loadingStudentId, setLoadingStudentId] = useState<string | null>(null)
+  // กันบันทึกซ้ำระหว่างสแกนรัว ก่อน logs จะรีเฟรชทัน
+  const recordedRef = useRef<Set<string>>(new Set())
 
-  const selectedStudent = allStudents.find(s => s.id === selectedStudentId)
   const presentPct = stats && stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0
 
-  function handleCheckIn(studentId: string, checkType: CheckType) {
-    setSelectedStudentId(studentId)
-    setSelectedCheckType(checkType)
-    setCameraOpen(true)
+  /** บันทึกการเช็คชื่อหนึ่งครั้ง (ใช้ทั้งสแกน QR และปุ่มในตาราง) */
+  async function recordAttendance(student: Student, checkType: CheckType): Promise<ScanResult> {
+    const key = `${student.id}:${checkType}`
+    const label = modeLabel(checkType)
+    const already =
+      recordedRef.current.has(key) ||
+      logs.some(l => l.student_id === student.id && l.check_type === checkType)
+    if (already) {
+      return { ok: false, name: student.fullname, message: `บันทึก "${label}" ของวันนี้แล้ว` }
+    }
+    recordedRef.current.add(key)
+    try {
+      const status = resolveStatus(checkType)
+      await createAttendanceLog({
+        student_id: student.id,
+        check_type: checkType,
+        image_url: null,
+        device_name: navigator.userAgent.slice(0, 100),
+        status,
+      })
+      fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentName: student.fullname,
+          studentCode: student.student_code,
+          classroom: student.classroom,
+          checkType,
+          status,
+          time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+          imageUrl: null,
+        }),
+      }).catch(() => {})
+      refresh()
+      return { ok: true, name: student.fullname, message: `${label} สำเร็จ` }
+    } catch {
+      recordedRef.current.delete(key)
+      return { ok: false, name: student.fullname, message: 'เกิดข้อผิดพลาด ลองใหม่' }
+    }
   }
 
-  async function handleCapture(blob: Blob) {
-    if (!selectedStudentId) return
-    setLoadingStudentId(selectedStudentId)
-    setCameraOpen(false)
-    try {
-      let imageUrl: string | null = null
-      if (process.env.NEXT_PUBLIC_USE_MOCK !== 'true') {
-        const form = new FormData()
-        form.append('file', blob, 'attendance.jpg')
-        const res = await fetch('/api/upload-drive', { method: 'POST', body: form })
-        if (res.ok) imageUrl = (await res.json()).url
-      }
-      await createAttendanceLog({
-        student_id: selectedStudentId,
-        check_type: selectedCheckType,
-        image_url: imageUrl,
-        device_name: navigator.userAgent.slice(0, 100),
-        status: 'present',
-      })
-      if (selectedStudent?.parent_phone && process.env.NEXT_PUBLIC_USE_MOCK !== 'true') {
-        await fetch('/api/notify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chatId: selectedStudent.parent_phone,
-            studentName: selectedStudent.fullname,
-            checkType: selectedCheckType,
-            time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
-            imageUrl,
-          }),
-        })
-      }
-      toast.success(`บันทึกเรียบร้อย! ${selectedStudent?.fullname ?? ''}`)
-      refresh()
-    } catch {
-      toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่')
-    } finally {
-      setLoadingStudentId(null)
-      setSelectedStudentId(null)
+  // เรียกจาก QR scanner: หา student จากรหัสในบัตร
+  async function handleScan(code: string): Promise<ScanResult> {
+    const student = allStudents.find(s => s.student_code === code)
+    if (!student) {
+      return { ok: false, name: 'ไม่พบบัตร', message: `ไม่พบนักเรียนรหัส ${code}` }
     }
+    return recordAttendance(student, mode)
+  }
+
+  // เรียกจากปุ่มในตาราง (เช็คตรง ไม่ต้องสแกน)
+  async function handleCheckIn(studentId: string, checkType: CheckType) {
+    const student = allStudents.find(s => s.id === studentId)
+    if (!student) return
+    setLoadingStudentId(studentId)
+    const res = await recordAttendance(student, checkType)
+    setLoadingStudentId(null)
+    if (res.ok) toast.success(`บันทึกเรียบร้อย! ${res.name}`)
+    else toast.info(res.message)
+  }
+
+  function openScanner() {
+    recordedRef.current.clear()
+    setScannerOpen(true)
   }
 
   return (
@@ -108,6 +134,36 @@ export default function AttendancePage() {
         </div>
       </div>
 
+      {/* แถบสแกน QR */}
+      <div className="rounded-3xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 shadow-xl p-5 space-y-4">
+        <div>
+          <p className="text-sm font-medium text-gray-500 mb-2">เลือกประเภทการเช็ค แล้วกดสแกน</p>
+          <div className="flex gap-2 flex-wrap">
+            {CHECK_MODES.map(m => (
+              <button
+                key={m.type}
+                onClick={() => setMode(m.type)}
+                className={cn(
+                  'px-5 py-2.5 rounded-2xl text-base font-medium transition-all duration-200 cursor-pointer',
+                  mode === m.type
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                )}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <button
+          onClick={openScanner}
+          className="w-full h-16 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-lg font-semibold flex items-center justify-center gap-3 shadow-lg shadow-blue-500/30 transition-all cursor-pointer"
+        >
+          <ScanLine className="w-6 h-6" aria-hidden="true" />
+          สแกน QR · {modeLabel(mode)}
+        </button>
+      </div>
+
       {/* Table */}
       <div className="rounded-3xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 shadow-xl p-5">
         <AttendanceTable
@@ -118,11 +174,11 @@ export default function AttendancePage() {
         />
       </div>
 
-      <CameraModal
-        open={cameraOpen}
-        onClose={() => { setCameraOpen(false); setSelectedStudentId(null) }}
-        onCapture={handleCapture}
-        studentName={selectedStudent?.fullname ?? ''}
+      <QRScannerModal
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        modeLabel={modeLabel(mode)}
+        onScan={handleScan}
       />
     </div>
   )

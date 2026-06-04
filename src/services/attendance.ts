@@ -1,11 +1,7 @@
 import { createBrowserClient } from './supabase'
 import type { AttendanceLog, CheckType, AttendanceStatus } from '@/types'
-import { MOCK_ATTENDANCE_LOGS } from '@/lib/mock-data'
-
-const USE_MOCK = process.env.USE_MOCK === 'true' || process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 export async function getAttendanceByDate(date: string): Promise<AttendanceLog[]> {
-  if (USE_MOCK) return MOCK_ATTENDANCE_LOGS
   const supabase = createBrowserClient()
   const { data, error } = await supabase
     .from('attendance_logs')
@@ -17,6 +13,30 @@ export async function getAttendanceByDate(date: string): Promise<AttendanceLog[]
   return (data ?? []) as AttendanceLog[]
 }
 
+export async function getAttendanceRange(startISO: string, endISO: string): Promise<AttendanceLog[]> {
+  const supabase = createBrowserClient()
+  const { data, error } = await supabase
+    .from('attendance_logs')
+    .select('*, student:students(*)')
+    .gte('timestamp', startISO)
+    .lte('timestamp', endISO)
+    .order('timestamp', { ascending: false })
+  if (error) { console.error('getAttendanceRange:', error.message); return [] }
+  return (data ?? []) as AttendanceLog[]
+}
+
+export async function getAttendanceByStudent(studentId: string, limit = 90): Promise<AttendanceLog[]> {
+  const supabase = createBrowserClient()
+  const { data, error } = await supabase
+    .from('attendance_logs')
+    .select('*, student:students(*)')
+    .eq('student_id', studentId)
+    .order('timestamp', { ascending: false })
+    .limit(limit)
+  if (error) { console.error('getAttendanceByStudent:', error.message); return [] }
+  return (data ?? []) as AttendanceLog[]
+}
+
 export async function createAttendanceLog(payload: {
   student_id: string
   check_type: CheckType
@@ -24,9 +44,6 @@ export async function createAttendanceLog(payload: {
   device_name: string
   status: AttendanceStatus
 }): Promise<AttendanceLog> {
-  if (USE_MOCK) {
-    return { id: crypto.randomUUID(), ...payload, timestamp: new Date().toISOString() } as AttendanceLog
-  }
   const supabase = createBrowserClient()
   const { data, error } = await supabase
     .from('attendance_logs').insert(payload).select('*, student:students(*)').single()
@@ -36,12 +53,18 @@ export async function createAttendanceLog(payload: {
 
 export async function getTodayStats() {
   const today = new Date().toISOString().split('T')[0]
-  const logs = await getAttendanceByDate(today)
-  return {
-    total: logs.length,
-    present: logs.filter(l => l.status === 'present').length,
-    absent: logs.filter(l => l.status === 'absent').length,
-    late: logs.filter(l => l.status === 'late').length,
-    date: today,
-  }
+  const supabase = createBrowserClient()
+  const [logs, { count }] = await Promise.all([
+    getAttendanceByDate(today),
+    supabase.from('students').select('*', { count: 'exact', head: true }),
+  ])
+  // Count distinct students per status (a student may have several check types in a day).
+  const distinct = (status: AttendanceStatus) =>
+    new Set(logs.filter(l => l.status === status).map(l => l.student_id)).size
+  const total = count ?? 0
+  const present = distinct('present')
+  const late = distinct('late')
+  // "ไม่ได้เช็ค = ขาด" — but only once the day is in session (someone has checked).
+  const absent = logs.length > 0 ? Math.max(0, total - present - late) : 0
+  return { total, present, absent, late, date: today }
 }

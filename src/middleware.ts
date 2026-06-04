@@ -22,13 +22,17 @@ export async function middleware(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login')
-  const isMock = process.env.USE_MOCK === 'true'
+  const path = request.nextUrl.pathname
+  const isLoginPage = path.startsWith('/login')
+  const isResetPage = path.startsWith('/reset-password')
+  const isPublic = isLoginPage || isResetPage
 
-  if (!isMock && !user && !isAuthPage) {
+  if (!user && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
-  if (user && isAuthPage) {
+  // Logged-in users don't need the login page, but DO allow /reset-password
+  // (password-recovery sessions land there to set a new password).
+  if (user && isLoginPage) {
     return NextResponse.redirect(new URL('/', request.url))
   }
   return supabaseResponse

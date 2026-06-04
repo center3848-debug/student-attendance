@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ClipboardCheck, Users, School, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, ClipboardCheck, Users, School, BarChart3, UtensilsCrossed } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
   { href: '/attendance', icon: ClipboardCheck, label: 'ลงเวลา' },
   { href: '/students', icon: Users, label: 'นักเรียน' },
   { href: '/classrooms', icon: School, label: 'ห้องเรียน' },
+  { href: '/lunch-check', icon: UtensilsCrossed, label: 'อาหาร' },
   { href: '/reports', icon: BarChart3, label: 'รายงาน' },
 ]
 

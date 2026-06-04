@@ -1,11 +1,7 @@
 import { createBrowserClient } from './supabase'
 import type { Student } from '@/types'
-import { MOCK_STUDENTS } from '@/lib/mock-data'
-
-const USE_MOCK = process.env.USE_MOCK === 'true' || process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 export async function getStudents(): Promise<Student[]> {
-  if (USE_MOCK) return MOCK_STUDENTS
   const supabase = createBrowserClient()
   const { data, error } = await supabase.from('students').select('*').order('classroom').order('fullname')
   if (error) { console.error('getStudents:', error.message); return [] }
@@ -13,7 +9,6 @@ export async function getStudents(): Promise<Student[]> {
 }
 
 export async function getStudentById(id: string): Promise<Student | null> {
-  if (USE_MOCK) return MOCK_STUDENTS.find(s => s.id === id) ?? null
   const supabase = createBrowserClient()
   const { data, error } = await supabase.from('students').select('*').eq('id', id).single()
   if (error) return null

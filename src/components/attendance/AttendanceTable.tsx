@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from './StatusBadge'
 import { CheckInButton } from './CheckInButton'
 import { formatThaiTime } from '@/lib/utils'
-import { MOCK_CLASSROOMS } from '@/lib/mock-data'
+import { useClassrooms } from '@/hooks/useClassrooms'
 import type { Student, AttendanceLog, CheckType } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -20,8 +20,9 @@ interface AttendanceTableProps {
 export function AttendanceTable({ students, logs, onCheckIn, loadingStudentId }: AttendanceTableProps) {
   const [search, setSearch] = useState('')
   const [activeRoom, setActiveRoom] = useState<string>('ทั้งหมด')
+  const { names: roomNames } = useClassrooms()
 
-  const classrooms = ['ทั้งหมด', ...MOCK_CLASSROOMS]
+  const classrooms = ['ทั้งหมด', ...roomNames]
 
   const filtered = useMemo(() => {
     return students.filter(s => {
@@ -39,8 +40,18 @@ export function AttendanceTable({ students, logs, onCheckIn, loadingStudentId }:
     return name ? name.charAt(0) : '?'
   }
 
-  const avatarColors = ['bg-blue-200 text-blue-800', 'bg-emerald-200 text-emerald-800', 'bg-purple-200 text-purple-800']
-  const roomColorIndex: Record<string, number> = { 'ห้อง 1': 0, 'ห้อง 2': 1, 'ห้อง 3': 2 }
+  const avatarColors = [
+    'bg-blue-200 text-blue-800',
+    'bg-emerald-200 text-emerald-800',
+    'bg-purple-200 text-purple-800',
+    'bg-amber-200 text-amber-800',
+    'bg-rose-200 text-rose-800',
+    'bg-cyan-200 text-cyan-800',
+  ]
+  function roomColor(classroom: string) {
+    const idx = roomNames.indexOf(classroom)
+    return avatarColors[idx >= 0 ? idx % avatarColors.length : 0]
+  }
 
   return (
     <div className="space-y-4">
@@ -90,9 +101,9 @@ export function AttendanceTable({ students, logs, onCheckIn, loadingStudentId }:
             <tbody>
               {filtered.map((student, i) => {
                 const log = getLog(student.id)
-                const colorClass = avatarColors[roomColorIndex[student.classroom] ?? 0]
+                const colorClass = roomColor(student.classroom)
                 const isLoading = loadingStudentId === student.id
-                const nextCheckType: CheckType = log ? (log.check_type === 'check_in' ? 'check_out' : 'pickup') : 'check_in'
+                const nextCheckType: CheckType = log ? 'pickup' : 'check_in'
 
                 return (
                   <tr key={student.id} className="border-b border-gray-50 dark:border-gray-800 hover:bg-blue-50/30 dark:hover:bg-gray-800/50 transition-colors">

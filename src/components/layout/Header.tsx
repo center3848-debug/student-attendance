@@ -1,5 +1,6 @@
 'use client'
-import { Moon, Sun, LogOut, User } from 'lucide-react'
+import { useState } from 'react'
+import { Moon, Sun, LogOut, KeyRound } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useRouter, usePathname } from 'next/navigation'
 import { createBrowserClient } from '@/services/supabase'
@@ -9,12 +10,14 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { ChangePasswordDialog } from './ChangePasswordDialog'
 
 const pageTitles: Record<string, string> = {
   '/': 'หน้าหลัก',
   '/attendance': 'ลงเวลาเรียน',
   '/students': 'ข้อมูลนักเรียน',
   '/classrooms': 'ห้องเรียน',
+  '/lunch-check': 'ตรวจอาหารกลางวัน',
   '/reports': 'รายงาน',
 }
 
@@ -25,6 +28,7 @@ export function Header({ title }: HeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const pageTitle = pageTitles[pathname] ?? title
+  const [pwOpen, setPwOpen] = useState(false)
 
   async function handleLogout() {
     const supabase = createBrowserClient()
@@ -60,14 +64,16 @@ export function Header({ title }: HeaderProps) {
           </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48 rounded-2xl shadow-xl border border-white/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl">
-          <DropdownMenuItem className="gap-2 cursor-pointer rounded-xl m-1 hover:bg-blue-50 dark:hover:bg-gray-800">
-            <User className="w-4 h-4 text-blue-500" /> โปรไฟล์ครู
+          <DropdownMenuItem onClick={() => setPwOpen(true)} className="gap-2 cursor-pointer rounded-xl m-1 hover:bg-blue-50 dark:hover:bg-gray-800">
+            <KeyRound className="w-4 h-4 text-blue-500" /> เปลี่ยนรหัสผ่าน
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleLogout} className="gap-2 cursor-pointer text-rose-600 rounded-xl m-1 hover:bg-rose-50 dark:hover:bg-gray-800">
             <LogOut className="w-4 h-4" /> ออกจากระบบ
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <ChangePasswordDialog open={pwOpen} onClose={() => setPwOpen(false)} />
     </header>
   )
 }

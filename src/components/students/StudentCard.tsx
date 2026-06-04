@@ -1,4 +1,4 @@
-import { Phone, Pencil, Trash2 } from 'lucide-react'
+import { Phone, Pencil, Trash2, QrCode } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { StatusBadge } from '@/components/attendance/StatusBadge'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ interface StudentCardProps {
   student: Student
   onEdit: () => void
   onDelete: () => void
+  onShowCard: () => void
   attendanceToday: AttendanceStatus | null
 }
 
@@ -22,7 +23,7 @@ const avatarColors: Record<string, string> = {
   'ห้อง 3': 'bg-purple-200 text-purple-700',
 }
 
-export function StudentCard({ student, onEdit, onDelete, attendanceToday }: StudentCardProps) {
+export function StudentCard({ student, onEdit, onDelete, onShowCard, attendanceToday }: StudentCardProps) {
   const initials = student.fullname.charAt(0)
   const avatarClass = avatarColors[student.classroom] ?? 'bg-gray-200 text-gray-700'
   const roomClass = roomColors[student.classroom] ?? 'bg-gray-100 text-gray-600'
@@ -41,6 +42,9 @@ export function StudentCard({ student, onEdit, onDelete, attendanceToday }: Stud
             </div>
           </div>
           <div className="flex gap-1">
+            <Button variant="ghost" size="icon" onClick={onShowCard} className="w-8 h-8 rounded-lg" aria-label="ดูบัตร/QR">
+              <QrCode className="w-4 h-4 text-gray-400 hover:text-amber-600" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={onEdit} className="w-8 h-8 rounded-lg" aria-label="แก้ไข">
               <Pencil className="w-4 h-4 text-gray-400 hover:text-blue-600" />
             </Button>

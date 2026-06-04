@@ -4,14 +4,14 @@ import { useAttendance } from '@/hooks/useAttendance'
 import { StatsCards } from '@/components/dashboard/StatsCards'
 import { AttendanceChart } from '@/components/dashboard/AttendanceChart'
 import { RecentActivity } from '@/components/dashboard/RecentActivity'
-import { getMockStats } from '@/lib/mock-data'
+import { NotCheckedIn } from '@/components/dashboard/NotCheckedIn'
 import { formatThaiDate } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ClipboardCheck, BarChart3, ArrowRight, Sparkles } from 'lucide-react'
 
 export default function DashboardPage() {
   const { stats, loading } = useAttendance()
-  const displayStats = stats ?? getMockStats()
+  const displayStats = stats ?? { total: 0, present: 0, absent: 0, late: 0, date: new Date().toISOString().split('T')[0] }
 
   return (
     <div className="space-y-6">
@@ -73,6 +73,15 @@ export default function DashboardPage() {
           </div>
           <RecentActivity />
         </div>
+      </div>
+
+      {/* ยังไม่มาวันนี้ */}
+      <div className="rounded-3xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 shadow-xl shadow-gray-200/50 dark:shadow-gray-900/50 p-5">
+        <div className="mb-4">
+          <h3 className="font-bold text-gray-800 dark:text-gray-100">ยังไม่มาวันนี้</h3>
+          <p className="text-xs text-gray-400 mt-0.5">นักเรียนที่ยังไม่ได้เช็คชื่อ — แตะ &quot;โทร&quot; เพื่อติดต่อผู้ปกครอง</p>
+        </div>
+        <NotCheckedIn />
       </div>
     </div>
   )

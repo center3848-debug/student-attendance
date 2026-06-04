@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
 import type { Student } from '@/types'
-import { MOCK_CLASSROOMS } from '@/lib/mock-data'
+import { useClassrooms } from '@/hooks/useClassrooms'
 
 type StudentFormData = Omit<Student, 'id' | 'created_at'>
 
@@ -31,6 +31,7 @@ const emptyForm: StudentFormData = {
 export function StudentForm({ open, onClose, onSubmit, initialData, loading }: StudentFormProps) {
   const [form, setForm] = useState<StudentFormData>(emptyForm)
   const [errors, setErrors] = useState<Partial<Record<keyof StudentFormData, string>>>({})
+  const { names: classroomNames } = useClassrooms()
 
   useEffect(() => {
     if (open) {
@@ -107,7 +108,10 @@ export function StudentForm({ open, onClose, onSubmit, initialData, loading }: S
                 <SelectValue placeholder="เลือกห้องเรียน" />
               </SelectTrigger>
               <SelectContent>
-                {MOCK_CLASSROOMS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                {(form.classroom && !classroomNames.includes(form.classroom)
+                  ? [form.classroom, ...classroomNames]
+                  : classroomNames
+                ).map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
               </SelectContent>
             </Select>
             {errors.classroom && <p className="text-xs text-rose-500">{errors.classroom}</p>}
