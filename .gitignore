@@ -45,3 +45,6 @@ next-env.d.ts
 
 # allow env template
 !.env.example
+
+# Local MCP config (contains secrets)
+.mcp.json
