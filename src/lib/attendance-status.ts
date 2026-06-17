@@ -13,7 +13,8 @@ export const LATE_CUTOFF = process.env.NEXT_PUBLIC_LATE_CUTOFF || '09:00'
 export function resolveStatus(checkType: CheckType, now: Date = new Date()): AttendanceStatus {
   if (checkType !== 'check_in') return 'present'
   const [h, m] = LATE_CUTOFF.split(':').map(Number)
-  const cutoff = new Date(now)
-  cutoff.setHours(h, m ?? 0, 0, 0)
-  return now.getTime() > cutoff.getTime() ? 'late' : 'present'
+  // Thailand is UTC+7 with no DST — compare against Bangkok time-of-day directly
+  const bangkokMinutes = Math.floor(now.getTime() / 60000) + 7 * 60
+  const timeOfDayMin = bangkokMinutes % (24 * 60)
+  return timeOfDayMin > h * 60 + (m ?? 0) ? 'late' : 'present'
 }

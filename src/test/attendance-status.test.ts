@@ -4,7 +4,8 @@ import { resolveStatus, LATE_CUTOFF } from '@/lib/attendance-status'
 function at(hhmm: string): Date {
   const [h, m] = hhmm.split(':').map(Number)
   const d = new Date()
-  d.setHours(h, m, 0, 0)
+  // hhmm is Bangkok time (UTC+7); convert to UTC so resolveStatus gets correct wall time
+  d.setUTCHours(h - 7, m, 0, 0)
   return d
 }
 

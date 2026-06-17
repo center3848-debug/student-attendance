@@ -81,6 +81,18 @@ export default function ClassroomsPage() {
     }
   }
 
+  const serviceRooms = classrooms.filter(r => r.name.startsWith('หน่วยบริการ'))
+  const regularRooms = classrooms.filter(r => !r.name.startsWith('หน่วยบริการ'))
+  function groupStats(rooms: Classroom[]) {
+    const ids = new Set(allStudents.filter(s => rooms.some(r => r.name === s.classroom)).map(s => s.id))
+    return {
+      total: ids.size,
+      present: new Set(logs.filter(l => ids.has(l.student_id) && l.status === 'present').map(l => l.student_id)).size,
+    }
+  }
+  const serviceStats = serviceRooms.length > 0 ? groupStats(serviceRooms) : null
+  const regularStats = regularRooms.length > 0 ? groupStats(regularRooms) : null
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -97,6 +109,42 @@ export default function ClassroomsPage() {
         </Button>
       </div>
 
+      {/* สรุปรายกลุ่ม — แสดงเมื่อมีห้องหน่วยบริการในระบบ */}
+      {!loadingRooms && serviceRooms.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {regularStats && regularStats.total > 0 && (
+            <div className="rounded-2xl bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-800 p-5">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm">
+                  <Users className="w-4 h-4 text-white" aria-hidden="true" />
+                </div>
+                <span className="text-sm font-medium text-gray-500">ห้องเรียน</span>
+              </div>
+              <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">
+                {regularStats.present}
+                <span className="text-base font-normal text-gray-400">/{regularStats.total} คน</span>
+              </p>
+              <p className="text-xs text-gray-400 mt-1">มาเรียนวันนี้</p>
+            </div>
+          )}
+          {serviceStats && serviceStats.total > 0 && (
+            <div className="rounded-2xl bg-amber-50 dark:bg-amber-900/20 ring-1 ring-amber-200 dark:ring-amber-800 p-5">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-sm">
+                  <Users className="w-4 h-4 text-white" aria-hidden="true" />
+                </div>
+                <span className="text-sm font-medium text-gray-500">หน่วยบริการ</span>
+              </div>
+              <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">
+                {serviceStats.present}
+                <span className="text-base font-normal text-gray-400">/{serviceStats.total} คน</span>
+              </p>
+              <p className="text-xs text-gray-400 mt-1">มาเรียนวันนี้</p>
+            </div>
+          )}
+        </div>
+      )}
+
       {loadingRooms ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 rounded-2xl" />)}
@@ -106,9 +154,10 @@ export default function ClassroomsPage() {
           {classrooms.map((room, i) => {
             const cfg = colorCycle[i % colorCycle.length]
             const roomStudents = allStudents.filter(s => s.classroom === room.name)
-            const present = logs.filter(l =>
-              roomStudents.some(s => s.id === l.student_id) && l.status === 'present'
-            ).length
+            const roomStudentIds = new Set(roomStudents.map(s => s.id))
+            const present = new Set(
+              logs.filter(l => roomStudentIds.has(l.student_id) && l.status === 'present').map(l => l.student_id)
+            ).size
             const pct = roomStudents.length > 0 ? Math.round((present / roomStudents.length) * 100) : 0
 
             return (
